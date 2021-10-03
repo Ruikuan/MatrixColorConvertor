@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MatrixConvertor": {
+      "commandName": "Project",
+      "commandLineArgs": "\"E:\\feidaokuan\\My Pictures\\Avatar\\photo.jpg\" \"E:\\feidaokuan\\My Pictures\\Avatar\\photo2.jpg\""
+    }
+  }
+}

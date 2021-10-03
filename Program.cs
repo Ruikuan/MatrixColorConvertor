@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
+using System.Drawing.Imaging;
 
-const float F255 = 255f;
 if (args.Length < 2)
 {
     Console.WriteLine("Please input file name: ");
@@ -8,23 +8,37 @@ if (args.Length < 2)
     return;
 }
 string originImage = args[0];
-using Bitmap image = new Bitmap(originImage);
+string destImage = args[1];
 
-for (int x = 0; x < image.Width; x++)
+ConvertImage(originImage, destImage);
+
+unsafe static void ConvertImage(string originImage, string destImage)
 {
-    for (int y = 0; y < image.Height; y++)
+    using Bitmap bmp = new(originImage);
+    Rectangle rect = new(0, 0, bmp.Width, bmp.Height);
+
+    var bmpData = bmp.LockBits(rect, ImageLockMode.ReadWrite, bmp.PixelFormat);
+
+    IntPtr ptr = bmpData.Scan0;
+    int byteCount = Math.Abs(bmpData.Stride) * bmp.Height;
+
+    Span<byte> rgbValues = new Span<byte>(ptr.ToPointer(), byteCount);
+    for (int i = 0; i < byteCount; i += 3)
     {
-        var color = image.GetPixel(x, y);
-        var newColor = Color.FromArgb(M(color.R, 1.5), M(color.G, 0.8), M(color.B, 1.5));
-        image.SetPixel(x, y, newColor);
+        rgbValues[i] = Matrixify(rgbValues[i], 1.5);
+        rgbValues[i + 1] = Matrixify(rgbValues[i + 1], 0.8);
+        rgbValues[i + 2] = Matrixify(rgbValues[i + 2], 1.5);
     }
+
+    bmp.UnlockBits(bmpData);
+    bmp.Save(destImage, ImageFormat.Jpeg);
 }
 
-image.Save(args[1], System.Drawing.Imaging.ImageFormat.Jpeg);
 
-static int M(int value, double pow)
+static byte Matrixify(byte value, double pow)
 {
+    const float F255 = 255f;
     float fValue = value / F255;
     var dResult = Math.Pow(fValue, pow);
-    return (int)(dResult * F255);
+    return (byte)(dResult * F255);
 }
